@@ -58,7 +58,7 @@ for the patients who got a follow-up date, soonest first.
 full-screen on a waiting-room TV or monitor -- point one at each location with
 `?locationId=<id>` (falls back to whichever location is open today if
 omitted). It polls the same `/api/now-serving` route the reception queue and
-doctor dashboard already use, once a minute, and shows only whichever token
+doctor dashboard already use, every 30 seconds, and shows only whichever token
 is currently `in_room` as `T<n>` in giant centered text (an em-dash when no
 one's in the room). It blinks for 45 seconds after the number it's showing
 changes, so a call is hard to miss even if no one's looking right when it

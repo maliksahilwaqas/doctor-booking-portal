@@ -2,13 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 
-const POLL_MS = 60000;
+const POLL_MS = 30000;
 const BLINK_MS = 45000;
 
 /**
  * The waiting-room screen -- a TV or monitor with this URL open, nothing
  * else. Polls app/api/now-serving/route.ts (the same route the reception
- * queue banner and doctor dashboard poll) once a minute for whichever
+ * queue banner and doctor dashboard poll) every 30 seconds for whichever
  * token is currently 'in_room', and blinks for 45 seconds the moment a new
  * token appears here, however long the previous poll took to notice it.
  * No login, no chrome, no other data -- just the number.
