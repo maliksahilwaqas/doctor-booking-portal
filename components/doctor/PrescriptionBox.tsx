@@ -110,11 +110,21 @@ export function PrescriptionBox({
               <td className="border-b border-white/15 py-1.5">
                 <div className="flex gap-3">
                   <label className="flex items-center gap-1.5 text-[11.5px] font-bold whitespace-nowrap">
-                    <input type="checkbox" checked={row.morning} onChange={(e) => updateRow(i, { morning: e.target.checked })} />
+                    <input
+                      type="checkbox"
+                      checked={row.morning}
+                      onChange={(e) => updateRow(i, { morning: e.target.checked })}
+                      className="h-[16px] w-[16px] flex-none shrink-0 cursor-pointer appearance-none border border-white/40 bg-transparent checked:border-accent checked:bg-accent"
+                    />
                     Morning
                   </label>
                   <label className="flex items-center gap-1.5 text-[11.5px] font-bold whitespace-nowrap">
-                    <input type="checkbox" checked={row.night} onChange={(e) => updateRow(i, { night: e.target.checked })} />
+                    <input
+                      type="checkbox"
+                      checked={row.night}
+                      onChange={(e) => updateRow(i, { night: e.target.checked })}
+                      className="h-[16px] w-[16px] flex-none shrink-0 cursor-pointer appearance-none border border-white/40 bg-transparent checked:border-accent checked:bg-accent"
+                    />
                     Night
                   </label>
                 </div>
@@ -161,6 +171,7 @@ export function PrescriptionBox({
                   setFollowUpDays(followUpDays === opt.value ? null : opt.value);
                   setSaved(false);
                 }}
+                className="h-[16px] w-[16px] flex-none shrink-0 cursor-pointer appearance-none border border-white/40 bg-transparent checked:border-accent checked:bg-accent"
               />
               {opt.label}
             </label>

@@ -241,9 +241,9 @@ export function PatientBookingApp({
                   onClick={() => chooseLocation(l.id)}
                   className="cursor-pointer px-3 py-2.5 text-left"
                   style={{
-                    background: on ? "var(--accent)" : "var(--accent-100)",
-                    color: on ? "#fff" : "var(--accent-700)",
-                    border: on ? "2px solid var(--accent)" : "1px solid var(--accent-200)",
+                    background: on ? "var(--accent)" : "transparent",
+                    color: on ? "#fff" : "var(--ink)",
+                    border: on ? "2px solid var(--accent)" : "1px solid var(--divider)",
                   }}
                 >
                   <div className="text-[15px] font-extrabold">{l.name}</div>
@@ -304,9 +304,9 @@ export function PatientBookingApp({
                 className="flex-none cursor-pointer px-0 py-1.5 text-center"
                 style={{
                   width: 50,
-                  background: active ? "var(--accent)" : "var(--accent-100)",
-                  color: active ? "#fff" : "var(--accent-700)",
-                  border: `1px solid ${active ? "var(--accent)" : "var(--accent-200)"}`,
+                  background: active ? "var(--ink)" : "transparent",
+                  color: active ? "var(--bg)" : "var(--ink)",
+                  border: `1px solid ${active ? "var(--ink)" : "var(--divider)"}`,
                   opacity: open ? 1 : 0.35,
                 }}
               >
