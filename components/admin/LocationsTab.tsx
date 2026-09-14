@@ -24,11 +24,23 @@ export interface AdminLocation {
 export function LocationsTab({ locations, currency }: { locations: AdminLocation[]; currency: CurrencyCode }) {
   const [pending, startTransition] = useTransition();
   const [adding, setAdding] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   async function onAdd() {
     setAdding(true);
     await addLocation();
     setAdding(false);
+  }
+
+  async function copyDisplayLink(id: string) {
+    const url = `${window.location.origin}/display?locationId=${id}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId((cur) => (cur === id ? null : cur)), 2000);
+    } catch {
+      window.prompt("Copy this link:", url);
+    }
   }
 
   return (
@@ -90,6 +102,15 @@ export function LocationsTab({ locations, currency }: { locations: AdminLocation
             <div className="border-t border-divider px-3 py-2 text-[11px] text-muted">
               {tokenCount(l)} tokens per session · fee auto-applied when a token is booked
             </div>
+            <button
+              onClick={() => void copyDisplayLink(l.id)}
+              className="flex w-full cursor-pointer items-center justify-between border-t border-divider px-3 py-2 text-left"
+            >
+              <span className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-accent">
+                {copiedId === l.id ? "Link copied" : "Copy waiting-room display link"}
+              </span>
+              <span className="text-[11px] text-muted">{copiedId === l.id ? "✓" : "⧉"}</span>
+            </button>
           </div>
         ))}
       </div>
