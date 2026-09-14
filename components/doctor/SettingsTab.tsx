@@ -20,7 +20,13 @@ export interface EditableLocation {
   active: boolean;
 }
 
-const COUNT_OPTIONS = [12, 18, 24, 30, 36];
+// Chosen so a whole-minute slot length divides most real session lengths
+// evenly (120/20=6, 120/40=3, 180/20=9, 180/40=4.5...) -- 18 and 36 didn't:
+// on a 120-minute session they'd floor to a 3-minute slot, which re-derives
+// to 40 tokens everywhere else in the app (the picker, the queue), not the
+// 36 actually requested, since the schema only ever stores a slot length,
+// never the count itself.
+const COUNT_OPTIONS = [12, 20, 24, 30, 40];
 
 export function SettingsTab({
   locations,
