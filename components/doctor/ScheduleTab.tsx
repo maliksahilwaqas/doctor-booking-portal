@@ -45,15 +45,12 @@ export function ScheduleTab({
         ) : null}
 
         {sessions.map((s, i) => (
-          <div key={s.locationId} className={i === 0 ? "mt-2.5 border-2 border-ink" : "mt-2.5 border border-divider"}>
-            <div
-              className="flex items-center justify-between px-3 py-2.5"
-              style={i === 0 ? { background: "var(--ink)", color: "var(--bg)" } : undefined}
-            >
+          <div key={s.locationId} className={i === 0 ? "mt-2.5 border-2 border-ink" : "mt-3.5 border-2 border-ink"}>
+            <div className="flex items-center justify-between px-3 py-2.5" style={{ background: "var(--ink)", color: "var(--bg)" }}>
               <span className="text-sm font-extrabold">
                 {s.sessionLabel} · {s.name}, {s.area}
               </span>
-              <span className="text-[11px] tracking-[0.08em]" style={i === 0 ? undefined : { color: "var(--muted)" }}>
+              <span className="text-[11px] tracking-[0.08em]">
                 {formatTime(s.fromMin)}–{formatTime(s.toMin)}
               </span>
             </div>
@@ -64,16 +61,14 @@ export function ScheduleTab({
               </div>
               <div className="text-right text-[11.5px] text-muted">of {s.capacity} tokens</div>
             </div>
-            {i === 0 ? (
-              <div className="px-3 pb-3">
-                <div className="h-3 bg-neutral-200">
-                  <span
-                    className="block h-3 bg-accent"
-                    style={{ width: `${s.capacity ? Math.min(100, (s.booked / s.capacity) * 100) : 0}%` }}
-                  />
-                </div>
+            <div className="px-3 pb-3">
+              <div className="h-3 bg-neutral-200">
+                <span
+                  className="block h-3 bg-accent"
+                  style={{ width: `${s.capacity ? Math.min(100, (s.booked / s.capacity) * 100) : 0}%` }}
+                />
               </div>
-            ) : null}
+            </div>
           </div>
         ))}
       </div>

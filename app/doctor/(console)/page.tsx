@@ -47,8 +47,7 @@ export default async function DoctorConsolePage(props: PageProps<"/doctor">) {
       const loc = allLocations.find((l) => l.id === e.locationId);
       return { name: loc?.name ?? "Location", area: loc?.area ?? "", total: e.total, patientCount: e.patientCount };
     });
-    const unpaid = earnings.reduce((sum, e) => sum + e.unpaid, 0);
-    content = <EarningsTab monthLabel={label} byLocation={byLocation} unpaid={unpaid} currency={profile.currency} />;
+    content = <EarningsTab monthLabel={label} byLocation={byLocation} currency={profile.currency} />;
   } else if (tab === "settings" && profile.feat.doctorSettings) {
     content = (
       <SettingsTab

@@ -11,12 +11,10 @@ export interface LocationEarningsVM {
 export function EarningsTab({
   monthLabel,
   byLocation,
-  unpaid,
   currency,
 }: {
   monthLabel: string;
   byLocation: LocationEarningsVM[];
-  unpaid: number;
   currency: CurrencyCode;
 }) {
   const total = byLocation.reduce((sum, l) => sum + l.total, 0);
@@ -26,8 +24,11 @@ export function EarningsTab({
   return (
     <div>
       <div className="text-[11px] font-extrabold uppercase tracking-[0.1em]">{monthLabel}</div>
-      <div className="mt-1.5 text-[36px] font-extrabold leading-tight">{formatMoney(total, currency)}</div>
-      <div className="mt-0.5 text-[12.5px] font-bold text-accent-700">{patients} patients</div>
+
+      <div className="mt-2.5 border-2 border-ink px-3.5 py-3">
+        <div className="text-[9.5px] font-extrabold uppercase tracking-[0.1em] text-muted">Total patients checked</div>
+        <div className="mt-0.5 text-[36px] font-extrabold leading-tight">{patients}</div>
+      </div>
 
       <div className="mt-4 text-[11px] font-extrabold uppercase tracking-[0.1em]">By location</div>
       <div className="mt-2 flex flex-col gap-2.5">
@@ -48,15 +49,9 @@ export function EarningsTab({
         ))}
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-px border border-divider bg-divider">
-        <div className="bg-bg px-3 py-2.5">
-          <div className="text-[9.5px] font-extrabold uppercase tracking-[0.1em] text-muted">Avg per patient</div>
-          <div className="text-[22px] font-extrabold">{patients ? formatMoney(Math.round(total / patients), currency) : "—"}</div>
-        </div>
-        <div className="bg-bg px-3 py-2.5">
-          <div className="text-[9.5px] font-extrabold uppercase tracking-[0.1em] text-muted">Unpaid</div>
-          <div className="text-[22px] font-extrabold text-accent-700">{formatMoney(unpaid, currency)}</div>
-        </div>
+      <div className="mt-4 bg-ink px-3.5 py-3 text-bg">
+        <div className="text-[9.5px] font-extrabold uppercase tracking-[0.1em] text-accent-400">Total collection</div>
+        <div className="mt-0.5 text-[28px] font-extrabold leading-tight">{formatMoney(total, currency)}</div>
       </div>
     </div>
   );

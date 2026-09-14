@@ -5,6 +5,7 @@ import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { getDoctorProfile } from "@/lib/data/profile";
 import { saveLocationScheduleSchema, type SaveLocationScheduleInput } from "@/lib/validations/doctorSettings";
+import { addLocationSchema, locationIdSchema } from "@/lib/validations/admin";
 import { savePrescriptionSchema, type SavePrescriptionInput } from "@/lib/validations/prescription";
 import { callNextTokenSchema, type CallNextTokenInput } from "@/lib/validations/queue";
 import { advanceQueue } from "@/lib/queue";
@@ -51,6 +52,54 @@ export async function toggleLocationActive(locationId: string): Promise<ActionSt
 
   const { error } = await supabase.from("locations").update({ active: !loc.active }).eq("id", locationId);
   if (error) return { error: "Could not update location" };
+  revalidatePath("/doctor");
+  revalidatePath("/");
+  return {};
+}
+
+export async function addLocation(name?: string): Promise<ActionState> {
+  await requireRole("doctor");
+  const profile = await getDoctorProfile();
+  if (!profile.feat.doctorSettings) return { error: "Settings are managed by the platform admin for this account." };
+
+  const parsed = addLocationSchema.safeParse({ name: name || undefined });
+  const supabase = await createClient();
+  const { data: p } = await supabase.from("doctor_profile").select("allowed_slot_minutes").eq("id", true).single();
+  const defaultSlot = p?.allowed_slot_minutes?.[0] ?? 15;
+
+  const { error } = await supabase.from("locations").insert({
+    name: parsed.success ? parsed.data.name : "New location",
+    area: "set in profile",
+    session: "morning",
+    days: [1, 2, 3, 4, 5],
+    from_min: 540,
+    to_min: 660,
+    slot_min: defaultSlot,
+    fee: 3000,
+    follow_up_fee: 1500,
+    detail: "Set the address, hours and fee here.",
+    active: true,
+    sort_order: 0,
+  });
+  if (error) return { error: "Could not add location" };
+
+  revalidatePath("/doctor");
+  revalidatePath("/");
+  return {};
+}
+
+export async function removeLocation(locationId: string): Promise<ActionState> {
+  await requireRole("doctor");
+  const profile = await getDoctorProfile();
+  if (!profile.feat.doctorSettings) return { error: "Settings are managed by the platform admin for this account." };
+
+  const parsed = locationIdSchema.safeParse({ locationId });
+  if (!parsed.success) return { error: "Invalid location" };
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("locations").delete().eq("id", parsed.data.locationId);
+  if (error) return { error: "Could not remove location" };
+
   revalidatePath("/doctor");
   revalidatePath("/");
   return {};

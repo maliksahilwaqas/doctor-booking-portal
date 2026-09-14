@@ -1,5 +1,5 @@
 import { signOut } from "@/actions/auth";
-import { TabRow } from "@/components/ui/primitives";
+import { NotifyDot, TabRow } from "@/components/ui/primitives";
 
 export function ReceptionShell({
   staffName,
@@ -28,7 +28,15 @@ export function ReceptionShell({
       <TabRow
         tabs={[
           { key: "queue", label: "QUEUE" },
-          { key: "requests", label: `REQUESTS · ${requestCount}` },
+          {
+            key: "requests",
+            label: (
+              <>
+                REQUESTS
+                {requestCount > 0 ? <NotifyDot className="absolute top-1.5 right-1.5" /> : null}
+              </>
+            ),
+          },
           { key: "patients", label: "PATIENTS" },
           { key: "create", label: "CREATE" },
         ]}

@@ -15,7 +15,7 @@ export function LocationDatePicker({
       <select
         name="locationId"
         defaultValue={locationId}
-        className="h-9 flex-1 border border-divider bg-surface px-2 text-[13px] font-bold"
+        className="h-9 min-w-0 flex-1 border border-divider bg-surface px-2 text-[13px] font-bold"
       >
         {locations.map((l) => (
           <option key={l.id} value={l.id}>
@@ -27,9 +27,9 @@ export function LocationDatePicker({
         type="date"
         name="date"
         defaultValue={date}
-        className="h-9 border border-divider bg-surface px-2 text-[13px] font-bold"
+        className="h-9 w-[124px] flex-none border border-divider bg-surface px-2 text-[13px] font-bold"
       />
-      <button type="submit" className="h-9 cursor-pointer border border-ink px-3 text-[11px] font-extrabold uppercase">
+      <button type="submit" className="h-9 flex-none cursor-pointer border border-ink px-3 text-[11px] font-extrabold uppercase">
         Go
       </button>
     </form>

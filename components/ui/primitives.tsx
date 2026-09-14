@@ -73,22 +73,32 @@ export function TextField({
   );
 }
 
+/** A small blinking dot for a tab label -- e.g. "unread requests waiting." */
+export function NotifyDot({ className = "" }: { className?: string }) {
+  return (
+    <span
+      className={`inline-block h-[7px] w-[7px] flex-none bg-accent align-middle ${className}`}
+      style={{ animation: "notify-blink 1.1s ease-in-out infinite" }}
+    />
+  );
+}
+
 export function TabRow({
   tabs,
   active,
   hrefFor,
 }: {
-  tabs: { key: string; label: string }[];
+  tabs: { key: string; label: ReactNode }[];
   active: string;
   hrefFor: (key: string) => string;
 }) {
   return (
-    <div className="flex border-t-2 border-divider text-[12.5px] font-extrabold tracking-[0.04em]">
+    <div className="flex border-t-2 border-divider text-[11.5px] font-extrabold tracking-[0.02em] sm:text-[12.5px] sm:tracking-[0.04em]">
       {tabs.map((t, i) => (
         <a
           key={t.key}
           href={hrefFor(t.key)}
-          className="flex-1 px-3 py-2.5 text-center transition-colors hover:bg-accent-100"
+          className="relative min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap px-1.5 py-2.5 text-center transition-colors hover:bg-accent-100 sm:px-3"
           style={{
             borderLeft: i === 0 ? "none" : "1px solid var(--divider)",
             background: active === t.key ? "var(--ink)" : "transparent",

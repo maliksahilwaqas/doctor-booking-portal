@@ -79,6 +79,14 @@ body {
   50% { background: var(--accent); color: #fff; }
 }
 
+/* Small live-notification dot (components/ui/primitives.tsx's NotifyDot) --
+   e.g. reception's Requests tab, so a pending request is noticeable without
+   spelling out a count. */
+@keyframes notify-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
 /* Printed prescriptions (app/store/[bookingId]) print at A4, matching the
    size lib/pdf/prescription.ts builds for the Share button's PDF. */
 @media print {
