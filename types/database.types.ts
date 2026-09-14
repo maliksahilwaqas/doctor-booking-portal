@@ -144,6 +144,14 @@ export interface Database {
         };
         Relationships: [];
       };
+      now_serving_public: {
+        Row: {
+          location_id: string;
+          visit_date: string;
+          token_number: number;
+        };
+        Relationships: [];
+      };
     };
     Functions: Record<string, never>;
   };
