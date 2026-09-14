@@ -113,6 +113,9 @@ export default async function DoctorConsolePage(props: PageProps<"/doctor">) {
       getBookingsForDate(openToday.map((l) => l.id), today),
       primary ? getNowServing(primary.id, today) : Promise.resolve(null),
     ]);
+    // Only used to seed the prescription box for whoever is already in the
+    // room on first paint -- DashboardTab/DashboardLive derive who's now
+    // serving live from the polled `bookings` list itself from here on.
     const latestPrescription = nowServing ? await getLatestPrescription(nowServing.bookingId) : null;
     const initialPrescriptionItems = latestPrescription?.items ?? [];
     const initialPrescriptionNotes = latestPrescription?.notes ?? "";
@@ -128,11 +131,6 @@ export default async function DoctorConsolePage(props: PageProps<"/doctor">) {
         locationArea={primary?.area ?? null}
         locationId={primary?.id ?? null}
         todayIso={today}
-        nowServing={{
-          bookingId: nowServing?.bookingId ?? null,
-          tokenNumber: nowServing?.tokenNumber ?? null,
-          patientName: nowServing?.patientName ?? null,
-        }}
         prescriptionsEnabled={profile.feat.prescriptions}
         initialPrescriptionItems={initialPrescriptionItems}
         initialPrescriptionNotes={initialPrescriptionNotes}
