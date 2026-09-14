@@ -87,6 +87,26 @@ body {
   50% { opacity: 0.25; }
 }
 
+/* The staff sign-in page's decorative "T" (app/staff/login) -- huge on a
+   narrow screen so it fills the empty space below the form down to the
+   footer, then scaled way back at lg+ where it only needs to sit within
+   the narrower but full-height brand column next to the form panel. */
+.login-t-glyph {
+  left: 66%;
+  top: 10%;
+  transform: translateX(-50%);
+  font-size: clamp(340px, 95vw, 440px);
+  letter-spacing: -0.06em;
+  line-height: 0.74;
+  color: rgba(255, 255, 255, 0.07);
+}
+@media (min-width: 1024px) {
+  .login-t-glyph {
+    top: 4%;
+    font-size: clamp(220px, 34vw, 460px);
+  }
+}
+
 /* Printed prescriptions (app/store/[bookingId]) print at A4, matching the
    size lib/pdf/prescription.ts builds for the Share button's PDF. */
 @media print {

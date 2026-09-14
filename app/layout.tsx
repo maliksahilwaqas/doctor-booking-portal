@@ -9,7 +9,7 @@ import { ACCENT_THEMES } from "@/lib/calc/accents";
 const archivo = Archivo({
   variable: "--font-archivo",
   subsets: ["latin"],
-  weight: ["400", "600", "800"],
+  weight: ["400", "600", "800", "900"],
 });
 
 export const metadata: Metadata = {
