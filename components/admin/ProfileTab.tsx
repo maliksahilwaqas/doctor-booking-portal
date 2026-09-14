@@ -27,10 +27,18 @@ export function ProfileTab({ profile }: { profile: ProfileFields }) {
   async function save() {
     setSaving(true);
     setError("");
-    const result = await updateProfile(fields);
-    setSaving(false);
-    if (result.error) setError(result.error);
-    else setSaved(true);
+    try {
+      const result = await updateProfile(fields);
+      if (result.error) setError(result.error);
+      else setSaved(true);
+    } catch {
+      // A stale page open across a deploy can make the server action call
+      // itself fail instead of returning a normal error -- without this,
+      // the button would stay stuck on "Saving..." forever.
+      setError("Couldn't reach the server. Refresh the page and try again.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (

@@ -62,13 +62,18 @@ export function PrescriptionBox({
   async function save() {
     setSubmitting(true);
     setError("");
-    const result = await savePrescription({ bookingId, items: validRows, notes: notes.trim(), followUpDays });
-    setSubmitting(false);
-    if (result.error) {
-      setError(result.error);
-      return;
+    try {
+      const result = await savePrescription({ bookingId, items: validRows, notes: notes.trim(), followUpDays });
+      if (result.error) setError(result.error);
+      else setSaved(true);
+    } catch {
+      // A stale page open across a deploy can make the server action call
+      // itself fail instead of returning a normal error -- without this,
+      // the button would stay stuck on "Saving..." forever.
+      setError("Couldn't reach the server. Refresh the page and try again.");
+    } finally {
+      setSubmitting(false);
     }
-    setSaved(true);
   }
 
   if (!open) {

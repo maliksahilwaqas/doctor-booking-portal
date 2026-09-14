@@ -179,18 +179,28 @@ function LocationEditorModal({
     // looked like it did nothing no matter what the doctor picked. Save
     // the number the count actually produces instead.
     const slotMin = divide === "slot" ? slot : Math.max(1, preview.effectiveSlotMin);
-    const result = await saveLocationSchedule({
-      locationId: location.id,
-      session: session === "both" ? "morning" : session,
-      fromMin,
-      toMin,
-      days,
-      slotMin,
-      divideByCount: divide === "count",
-    });
-    setSaving(false);
-    if (result.error) setError(result.error);
-    else onClose();
+    try {
+      const result = await saveLocationSchedule({
+        locationId: location.id,
+        session: session === "both" ? "morning" : session,
+        fromMin,
+        toMin,
+        days,
+        slotMin,
+        divideByCount: divide === "count",
+      });
+      if (result.error) setError(result.error);
+      else onClose();
+    } catch {
+      // A stale page open across a deploy is the most likely cause here --
+      // the server action call itself can fail outright instead of
+      // returning a normal error, which without this would leave the
+      // button stuck on "Saving..." forever with no way to tell what
+      // happened.
+      setError("Couldn't reach the server. Refresh the page and try again.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
