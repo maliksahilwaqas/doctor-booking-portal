@@ -38,5 +38,5 @@ export default async function DisplayPage(props: PageProps<"/display">) {
 
   const serving = await getNowServing(location.id, today);
 
-  return <TokenDisplay locationId={location.id} visitDate={today} initialTokenNumber={serving?.tokenNumber ?? null} />;
+  return <TokenDisplay locationId={location.id} initialTokenNumber={serving?.tokenNumber ?? null} />;
 }
