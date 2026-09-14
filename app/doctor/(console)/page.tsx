@@ -1,6 +1,6 @@
 import { requireRole } from "@/lib/auth";
 import { getDoctorProfile } from "@/lib/data/profile";
-import { getActiveLocations, getAllLocations } from "@/lib/data/locations";
+import { getAllLocations } from "@/lib/data/locations";
 import { getBookingsForDate, getEarningsByLocation } from "@/lib/data/bookings";
 import { getNowServing } from "@/lib/data/queue";
 import { getLatestPrescription } from "@/lib/data/prescriptions";
@@ -27,12 +27,10 @@ export default async function DoctorConsolePage(props: PageProps<"/doctor">) {
   const searchParams = await props.searchParams;
   const tab = typeof searchParams.tab === "string" ? searchParams.tab : "dashboard";
 
-  const [, profile, activeLocations, allLocations] = await Promise.all([
-    requireRole("doctor"),
-    getDoctorProfile(),
-    getActiveLocations(),
-    getAllLocations(),
-  ]);
+  const [, profile, allLocations] = await Promise.all([requireRole("doctor"), getDoctorProfile(), getAllLocations()]);
+  // getActiveLocations() is just this filter done in the database -- no need
+  // for a second round-trip to get a subset of a list already in hand.
+  const activeLocations = allLocations.filter((l) => l.active);
 
   const today = todayISO();
   const todayInfo = dayInfo(today);

@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import type { AccentName } from "@/lib/calc/accents";
 import type { CurrencyCode, LocationTerm, SessionLabelStyle } from "@/types/database.types";
@@ -28,7 +29,13 @@ export interface DoctorProfile {
   };
 }
 
-export async function getDoctorProfile(): Promise<DoctorProfile> {
+/**
+ * Wrapped in React's `cache()` -- the root layout and every page call this
+ * (see app/layout.tsx and each app/*\/page.tsx), and without memoization
+ * that's two separate Supabase round-trips for the same row on every single
+ * request. Same pattern as lib/auth.ts's getCurrentStaff.
+ */
+export const getDoctorProfile = cache(async (): Promise<DoctorProfile> => {
   const supabase = await createClient();
   const { data, error } = await supabase.from("doctor_profile").select("*").eq("id", true).single();
   if (error || !data) throw new Error(`Could not load doctor profile: ${error?.message ?? "not found"}`);
@@ -58,4 +65,4 @@ export async function getDoctorProfile(): Promise<DoctorProfile> {
       prescriptions: data.feat_prescriptions,
     },
   };
-}
+});
