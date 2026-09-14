@@ -3,11 +3,11 @@ import { getNowServing } from "@/lib/data/queue";
 import { getCurrentStaff } from "@/lib/auth";
 
 /**
- * Polled by the reception queue banner, the doctor dashboard, and (once
- * built) a public queue-call display -- all three just need "which token
- * is in the room right now", so this one route serves all of them. Patient
- * name is only included for signed-in staff; an unauthenticated caller
- * (a waiting-room screen) gets the token number alone.
+ * Polled by the reception queue banner, the doctor dashboard, and the
+ * public app/display page -- all three just need "which token is in the
+ * room right now", so this one route serves all of them. Patient name is
+ * only included for signed-in staff; an unauthenticated caller (a
+ * waiting-room screen) gets the token number alone.
  */
 export async function GET(request: NextRequest) {
   const locationId = request.nextUrl.searchParams.get("locationId");

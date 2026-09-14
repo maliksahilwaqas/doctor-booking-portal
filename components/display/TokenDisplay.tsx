@@ -2,26 +2,32 @@
 
 import { useEffect, useRef, useState } from "react";
 
-const POLL_MS = 30000;
+const POLL_MS = 10000;
 const BLINK_MS = 45000;
 
 /**
  * The waiting-room screen -- a TV or monitor with this URL open, nothing
- * else. Polls app/api/now-serving/route.ts (the same route the reception
- * queue banner and doctor dashboard poll) every 30 seconds for whichever
- * token is currently 'in_room', and blinks for 45 seconds the moment a new
- * token appears here, however long the previous poll took to notice it.
- * No login, no chrome, no other data -- just the number.
+ * else, meant to be opened once and left running for hours or days
+ * unattended. That constraint shapes everything here:
  *
- * Two things matter for a screen meant to run unattended for hours:
- * "today" is recomputed on every poll (UTC date, matching todayISO()
- * server-side) instead of trusting the date the page happened to load
- * with, so a display left open across midnight rolls to the new day's
- * queue on its own instead of querying a date that's gone stale. And a
- * `visibilitychange` listener forces an immediate poll the moment the tab
- * regains focus, since browsers throttle background-tab timers and a
- * screen that was backgrounded (another app in front, laptop woken from
- * sleep) shouldn't have to wait out a stale interval to catch up.
+ * - Polling is a self-scheduling loop (poll, then schedule the next poll
+ *   only once this one finishes), not setInterval. setInterval keeps
+ *   firing on its own clock even if a fetch is slow, which can pile up
+ *   overlapping requests; this can't ever have two in flight at once.
+ * - "Today" is recomputed on every poll (UTC date, matching todayISO()
+ *   server-side) instead of trusting the date the page happened to load
+ *   with, so a screen left open across midnight follows the new day's
+ *   queue on its own.
+ * - visibilitychange/focus/online listeners force an immediate poll (and
+ *   reset the schedule so it doesn't also fire a second one moments
+ *   later) whenever the tab wakes up -- covers a browser backgrounding
+ *   the tab's timer, a laptop waking from sleep, or Wi-Fi dropping and
+ *   coming back, none of which should mean waiting out a stale cycle.
+ * - A failed fetch is silently retried next cycle -- the room's status
+ *   doesn't change just because one request timed out.
+ *
+ * Blinks for 45 seconds the moment the token number changes. No login,
+ * no chrome, no other data -- just the number.
  */
 export function TokenDisplay({
   locationId,
@@ -36,28 +42,43 @@ export function TokenDisplay({
   const blinkTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    let ignore = false;
-    const poll = () => {
-      const today = new Date().toISOString().slice(0, 10);
-      fetch(`/api/now-serving?locationId=${locationId}&date=${today}`)
-        .then((r) => r.json())
-        .then((data) => {
-          if (!ignore) setTokenNumber(data.tokenNumber);
-        })
-        .catch(() => {});
-    };
+    let cancelled = false;
+    let nextPollTimer: ReturnType<typeof setTimeout> | null = null;
+
+    async function poll() {
+      try {
+        const today = new Date().toISOString().slice(0, 10);
+        const res = await fetch(`/api/now-serving?locationId=${locationId}&date=${today}`, { cache: "no-store" });
+        if (!cancelled && res.ok) {
+          const data = await res.json();
+          setTokenNumber(data.tokenNumber ?? null);
+        }
+      } catch {
+        // Network blip -- next cycle tries again; the screen just keeps showing the last known token.
+      } finally {
+        if (!cancelled) nextPollTimer = setTimeout(poll, POLL_MS);
+      }
+    }
+
+    function pollNow() {
+      if (nextPollTimer) clearTimeout(nextPollTimer);
+      void poll();
+    }
+
     poll();
-    const id = setInterval(poll, POLL_MS);
-    const onVisible = () => {
-      if (document.visibilityState === "visible") poll();
-    };
-    document.addEventListener("visibilitychange", onVisible);
-    window.addEventListener("focus", onVisible);
+    function onWake() {
+      if (document.visibilityState === "visible") pollNow();
+    }
+    document.addEventListener("visibilitychange", onWake);
+    window.addEventListener("focus", onWake);
+    window.addEventListener("online", onWake);
+
     return () => {
-      ignore = true;
-      clearInterval(id);
-      document.removeEventListener("visibilitychange", onVisible);
-      window.removeEventListener("focus", onVisible);
+      cancelled = true;
+      if (nextPollTimer) clearTimeout(nextPollTimer);
+      document.removeEventListener("visibilitychange", onWake);
+      window.removeEventListener("focus", onWake);
+      window.removeEventListener("online", onWake);
     };
   }, [locationId]);
 
