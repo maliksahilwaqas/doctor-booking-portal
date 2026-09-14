@@ -4,6 +4,8 @@ export interface SessionPreview {
   tokenCount: number;
   slotMinutesDisplay: number;
   lastTokenTime: string;
+  /** The whole-minute slot length that actually produces `tokenCount` tokens -- what a save must persist for "by patient count" mode, since the schema only ever stores a slot length. */
+  effectiveSlotMin: number;
 }
 
 /**
@@ -23,5 +25,5 @@ export function computeSessionPreview(
   const slotMinutesDisplay = mode === "slot" ? slotMin : Math.round((range / count) * 10) / 10;
   const effectiveSlot = tokenCount > 0 ? Math.floor(range / tokenCount) : 0;
   const lastTokenTime = formatTime(fromMin + Math.max(0, tokenCount - 1) * effectiveSlot);
-  return { tokenCount, slotMinutesDisplay, lastTokenTime };
+  return { tokenCount, slotMinutesDisplay, lastTokenTime, effectiveSlotMin: effectiveSlot };
 }

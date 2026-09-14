@@ -170,13 +170,23 @@ function LocationEditorModal({
   async function save() {
     setSaving(true);
     setError("");
+    // "By patient count" only ever chooses a token count -- the schema has
+    // no such column, so what actually gets persisted is the slot length
+    // that produces that count. Snapping that to one of the admin's fixed
+    // slot-length options collapsed almost every count down to the same
+    // smallest allowed value for a normal-length session (e.g. 12-36
+    // patients in a 60-minute session all round to 5 min), so a save
+    // looked like it did nothing no matter what the doctor picked. Save
+    // the number the count actually produces instead.
+    const slotMin = divide === "slot" ? slot : Math.max(1, preview.effectiveSlotMin);
     const result = await saveLocationSchedule({
       locationId: location.id,
       session: session === "both" ? "morning" : session,
       fromMin,
       toMin,
       days,
-      slotMin: divide === "slot" ? slot : location.slotMin,
+      slotMin,
+      divideByCount: divide === "count",
     });
     setSaving(false);
     if (result.error) setError(result.error);

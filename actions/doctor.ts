@@ -26,8 +26,12 @@ export async function saveLocationSchedule(input: SaveLocationScheduleInput): Pr
 
   const parsed = saveLocationScheduleSchema.safeParse(input);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid schedule" };
-  const { locationId, session, fromMin, toMin, days, slotMin } = parsed.data;
-  if (!profile.allowedSlotMinutes.includes(slotMin)) return { error: "That slot length isn't enabled." };
+  const { locationId, session, fromMin, toMin, days, slotMin, divideByCount } = parsed.data;
+  // "By slot length" only ever offers the admin's own menu, so a real
+  // client can't send anything else there -- but "by patient count"
+  // deliberately produces whatever slot length that count implies, which
+  // has no reason to land on one of those fixed options.
+  if (!divideByCount && !profile.allowedSlotMinutes.includes(slotMin)) return { error: "That slot length isn't enabled." };
 
   const supabase = await createClient();
   const { error } = await supabase

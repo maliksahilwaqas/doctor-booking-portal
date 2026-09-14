@@ -7,6 +7,7 @@ describe("computeSessionPreview", () => {
     expect(p.tokenCount).toBe(36);
     expect(p.slotMinutesDisplay).toBe(5);
     expect(p.lastTokenTime).toBe("11:55");
+    expect(p.effectiveSlotMin).toBe(5);
   });
 
   it("divides by fixed patient count", () => {
@@ -14,5 +15,6 @@ describe("computeSessionPreview", () => {
     expect(p.tokenCount).toBe(24);
     expect(p.slotMinutesDisplay).toBe(7.5);
     expect(p.lastTokenTime).toBe("11:41");
+    expect(p.effectiveSlotMin).toBe(7);
   });
 });
