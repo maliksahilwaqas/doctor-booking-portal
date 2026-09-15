@@ -43,12 +43,22 @@ export function DashboardLive({
   const [bookings, setBookings] = useState<BookingRow[]>(initialBookings);
   const [pending, startTransition] = useTransition();
   const initialNowServingId = initialBookings.find((b) => b.queueStatus === "in_room")?.id ?? null;
+  // While the doctor has the prescription box open, a poll landing mid-edit
+  // could change who's "now serving" (e.g. reception calls the next token)
+  // and remount the box -- wiping an unsaved draft. Paused here rather than
+  // in PrescriptionBox itself, since this is the component that actually
+  // owns the poll loop and the bookings list it would otherwise overwrite.
+  const [prescriptionEditing, setPrescriptionEditing] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     let nextPollTimer: ReturnType<typeof setTimeout> | null = null;
 
     async function poll() {
+      if (prescriptionEditing) {
+        if (!cancelled) nextPollTimer = setTimeout(poll, POLL_MS);
+        return;
+      }
       try {
         const res = await fetch(`/api/doctor-queue?locationId=${locationId}&date=${visitDate}`, { cache: "no-store" });
         if (!cancelled && res.ok) {
@@ -82,7 +92,10 @@ export function DashboardLive({
       window.removeEventListener("focus", onWake);
       window.removeEventListener("online", onWake);
     };
-  }, [locationId, visitDate]);
+    // Restarting on prescriptionEditing flipping is deliberate: closing (or
+    // saving) fires poll() immediately with the flag already false, so the
+    // dashboard catches up right away instead of waiting out a stale cycle.
+  }, [locationId, visitDate, prescriptionEditing]);
 
   const nowServing = bookings.find((b) => b.queueStatus === "in_room") ?? null;
   // Seen patients are done -- they don't belong on an "active right now" view.
@@ -117,6 +130,7 @@ export function DashboardLive({
               initialItems={nowServing.id === initialNowServingId ? initialPrescriptionItems : []}
               initialNotes={nowServing.id === initialNowServingId ? initialPrescriptionNotes : ""}
               initialFollowUpDays={nowServing.id === initialNowServingId ? initialPrescriptionFollowUpDays : null}
+              onEditingChange={setPrescriptionEditing}
             />
           ) : null}
         </div>

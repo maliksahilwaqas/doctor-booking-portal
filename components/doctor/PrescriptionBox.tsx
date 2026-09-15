@@ -28,11 +28,14 @@ export function PrescriptionBox({
   initialItems,
   initialNotes,
   initialFollowUpDays,
+  onEditingChange,
 }: {
   bookingId: string;
   initialItems: PrescriptionItem[];
   initialNotes: string;
   initialFollowUpDays: number | null;
+  /** Lets a live-polling parent (see DashboardLive) pause while there's an unsaved draft, so a poll can't remount this out from under the doctor. */
+  onEditingChange?: (editing: boolean) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [rows, setRows] = useState<PrescriptionItem[]>(initialItems.length ? initialItems : [{ ...BLANK_ROW }]);
@@ -65,7 +68,10 @@ export function PrescriptionBox({
     try {
       const result = await savePrescription({ bookingId, items: validRows, notes: notes.trim(), followUpDays });
       if (result.error) setError(result.error);
-      else setSaved(true);
+      else {
+        setSaved(true);
+        onEditingChange?.(false);
+      }
     } catch {
       // A stale page open across a deploy can make the server action call
       // itself fail instead of returning a normal error -- without this,
@@ -79,7 +85,10 @@ export function PrescriptionBox({
   if (!open) {
     return (
       <button
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setOpen(true);
+          onEditingChange?.(true);
+        }}
         className="mt-3 w-full cursor-pointer border border-white/40 px-3 py-3 text-[13px] font-extrabold"
       >
         {saved ? "EDIT PRESCRIPTION" : "WRITE PRESCRIPTION"}
@@ -189,7 +198,13 @@ export function PrescriptionBox({
         <CtaBar className="flex-1" disabled={!canSave || submitting} onClick={save}>
           <span>{submitting ? "SAVING…" : saved ? "SAVED ✓" : "SAVE PRESCRIPTION"}</span>
         </CtaBar>
-        <button onClick={() => setOpen(false)} className="cursor-pointer border border-white/40 px-3 text-[12px] font-extrabold">
+        <button
+          onClick={() => {
+            setOpen(false);
+            onEditingChange?.(false);
+          }}
+          className="cursor-pointer border border-white/40 px-3 text-[12px] font-extrabold"
+        >
           CLOSE
         </button>
       </div>
