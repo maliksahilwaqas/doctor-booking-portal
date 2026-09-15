@@ -1,13 +1,12 @@
 import { requireStaff } from "@/lib/auth";
 import { getActiveLocations } from "@/lib/data/locations";
 import { getPendingRequests, getQueue } from "@/lib/data/bookings";
-import { getNowServing } from "@/lib/data/queue";
 import { getDoctorProfile } from "@/lib/data/profile";
 import { getPrescribedBookingIds, getUpcomingFollowUps } from "@/lib/data/prescriptions";
 import { todayISO } from "@/lib/calc/schedule";
 import { ReceptionShell } from "@/components/reception/ReceptionShell";
-import { QueueTab } from "@/components/reception/QueueTab";
-import { RequestsTab } from "@/components/reception/RequestsTab";
+import { QueueLive } from "@/components/reception/QueueLive";
+import { RequestsLive } from "@/components/reception/RequestsLive";
 import { SessionPatientsTab } from "@/components/reception/SessionPatientsTab";
 import { FollowUpsTab } from "@/components/reception/FollowUpsTab";
 import { CreateTab } from "@/components/reception/CreateTab";
@@ -36,7 +35,7 @@ export default async function ReceptionConsolePage(props: PageProps<"/reception"
   let content: React.ReactNode;
   if (tab === "requests") {
     const locationNames = Object.fromEntries(locations.map((l) => [l.id, `${l.name} — ${l.area}`]));
-    content = <RequestsTab requests={pendingRequests} locationNames={locationNames} currency={profile.currency} />;
+    content = <RequestsLive initialRequests={pendingRequests} locationNames={locationNames} currency={profile.currency} />;
   } else if (tab === "create") {
     content = loc ? (
       <CreateTab locations={locations} currentLocationId={loc.id} today={today} currency={profile.currency} />
@@ -65,11 +64,11 @@ export default async function ReceptionConsolePage(props: PageProps<"/reception"
   } else if (tab === "patients") {
     content = <div className="text-sm text-muted">No locations configured yet.</div>;
   } else if (loc) {
-    const [bookings, nowServing] = await Promise.all([getQueue(loc.id, today), getNowServing(loc.id, today)]);
+    const bookings = await getQueue(loc.id, today);
     content = (
       <>
         <LocationSessionPicker locations={locations} currentLocationId={loc.id} tab="queue" sessionLabelStyle={profile.sessionLabels} />
-        <QueueTab bookings={bookings} loc={loc} locationId={loc.id} visitDate={today} nowServing={nowServing} currency={profile.currency} />
+        <QueueLive locationId={loc.id} visitDate={today} loc={loc} currency={profile.currency} initialBookings={bookings} />
       </>
     );
   } else {

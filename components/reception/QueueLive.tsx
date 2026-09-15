@@ -1,48 +1,118 @@
 "use client";
 
-import { useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
-import { receivePayment, toggleCheckedIn } from "@/actions/reception";
+import { callNextToken, receivePayment, toggleCheckedIn } from "@/actions/reception";
 import { tokenCount, tokenTime } from "@/lib/calc/tokens";
 import { formatMoney } from "@/lib/calc/format";
 import { SectionHeading } from "@/components/ui/primitives";
-import { NowServingBanner } from "./NowServingBanner";
 import type { BookingRow } from "@/lib/data/bookings";
-import type { NowServing } from "@/lib/data/queue";
 import type { CurrencyCode } from "@/types/database.types";
 
-export function QueueTab({
-  bookings,
-  loc,
+const POLL_MS = 4000;
+
+/**
+ * The reception Queue tab's entire live surface -- now-serving banner,
+ * call-next, counts, and the waiting queue -- all driven from one polled
+ * bookings list instead of the page's initial server render, the same way
+ * components/doctor/DashboardLive.tsx does for the doctor's dashboard.
+ * Replaces the old QueueTab + NowServingBanner (which polled separately
+ * from each other, and left the waiting-queue rows themselves static).
+ */
+export function QueueLive({
   locationId,
   visitDate,
-  nowServing,
+  loc,
   currency,
+  initialBookings,
 }: {
-  bookings: BookingRow[];
-  loc: { fromMin: number; toMin: number; slotMin: number };
   locationId: string;
   visitDate: string;
-  nowServing: NowServing | null;
+  loc: { fromMin: number; toMin: number; slotMin: number };
   currency: CurrencyCode;
+  initialBookings: BookingRow[];
 }) {
+  const [bookings, setBookings] = useState<BookingRow[]>(initialBookings);
   const [pending, startTransition] = useTransition();
+
+  useEffect(() => {
+    let cancelled = false;
+    let nextPollTimer: ReturnType<typeof setTimeout> | null = null;
+
+    async function poll() {
+      try {
+        const res = await fetch(`/api/doctor-queue?locationId=${locationId}&date=${visitDate}`, { cache: "no-store" });
+        if (!cancelled && res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data.bookings)) setBookings(data.bookings);
+        }
+      } catch {
+        // Network blip -- next cycle tries again.
+      } finally {
+        if (!cancelled) nextPollTimer = setTimeout(poll, POLL_MS);
+      }
+    }
+
+    function pollNow() {
+      if (nextPollTimer) clearTimeout(nextPollTimer);
+      void poll();
+    }
+
+    poll();
+    function onWake() {
+      if (document.visibilityState === "visible") pollNow();
+    }
+    document.addEventListener("visibilitychange", onWake);
+    window.addEventListener("focus", onWake);
+    window.addEventListener("online", onWake);
+
+    return () => {
+      cancelled = true;
+      if (nextPollTimer) clearTimeout(nextPollTimer);
+      document.removeEventListener("visibilitychange", onWake);
+      window.removeEventListener("focus", onWake);
+      window.removeEventListener("online", onWake);
+    };
+  }, [locationId, visitDate]);
+
   const total = tokenCount(loc);
+  const nowServing = bookings.find((b) => b.queueStatus === "in_room") ?? null;
   const checkedInCount = bookings.filter((b) => b.checkedIn).length;
   const readyForRoom = bookings.filter((b) => b.queueStatus === "checked_in").length;
   // The in-room patient is shown in the banner above, not in this list;
   // a 'done' patient has already been seen and drops off reception's view.
   const queueRows = bookings.filter((b) => b.queueStatus === "waiting" || b.queueStatus === "checked_in");
 
+  function callNext() {
+    startTransition(async () => {
+      await callNextToken({ locationId, visitDate });
+    });
+  }
+
   return (
     <div className="flex flex-col gap-5">
-      <NowServingBanner
-        key={`${locationId}:${visitDate}`}
-        locationId={locationId}
-        visitDate={visitDate}
-        waitingCount={readyForRoom}
-        initial={{ tokenNumber: nowServing?.tokenNumber ?? null, patientName: nowServing?.patientName ?? null }}
-      />
+      <div className="mb-1 bg-ink px-3 py-3 text-bg">
+        {nowServing ? (
+          <div className="flex items-baseline justify-between">
+            <div>
+              <div className="text-[10px] tracking-[0.1em] opacity-70">TOKEN {nowServing.tokenNumber}</div>
+              <div className="text-[19px] font-extrabold">{nowServing.patientName}</div>
+            </div>
+            <div className="text-right">
+              <div className="text-[10px] tracking-[0.1em] opacity-70">IN ROOM</div>
+            </div>
+          </div>
+        ) : (
+          <div className="text-[13px] font-bold opacity-80">No one in the room right now.</div>
+        )}
+        <button
+          disabled={pending || readyForRoom === 0}
+          onClick={callNext}
+          className="mt-3 w-full cursor-pointer bg-accent px-3 py-2.5 text-[13px] font-extrabold disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {pending ? "CALLING…" : "CALL NEXT TOKEN"}
+        </button>
+      </div>
 
       <div>
         <SectionHeading meta={`${checkedInCount} checked in · ${bookings.length - checkedInCount} not yet arrived`}>

@@ -1,14 +1,14 @@
 import { requireRole } from "@/lib/auth";
 import { getTodayPrescriptionsForStore } from "@/lib/data/store";
 import { StoreShell } from "@/components/store/StoreShell";
-import { PrescriptionsList } from "@/components/store/PrescriptionsList";
+import { PrescriptionsLive } from "@/components/store/PrescriptionsLive";
 
 export default async function StoreConsolePage() {
   const [staff, prescriptions] = await Promise.all([requireRole("store"), getTodayPrescriptionsForStore()]);
 
   return (
     <StoreShell staffName={staff.fullName}>
-      <PrescriptionsList prescriptions={prescriptions} />
+      <PrescriptionsLive initialPrescriptions={prescriptions} />
     </StoreShell>
   );
 }
