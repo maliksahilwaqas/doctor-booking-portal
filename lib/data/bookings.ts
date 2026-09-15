@@ -137,3 +137,22 @@ export async function getEarningsByLocation(start: string, end: string): Promise
   }
   return Array.from(byLocation.values());
 }
+
+export interface BookingSlip {
+  tokenNumber: number;
+  patientName: string;
+  visitDate: string;
+}
+
+/** Just enough to print a thermal token slip -- see app/reception/token/[bookingId]. */
+export async function getBookingSlip(bookingId: string): Promise<BookingSlip | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("bookings")
+    .select("token_number, patient_name, visit_date")
+    .eq("id", bookingId)
+    .maybeSingle();
+  if (error) throw new Error(`Could not load booking: ${error.message}`);
+  if (!data) return null;
+  return { tokenNumber: data.token_number, patientName: data.patient_name, visitDate: data.visit_date };
+}

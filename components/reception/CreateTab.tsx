@@ -4,17 +4,18 @@ import { useState } from "react";
 import { WalkInForm } from "./WalkInForm";
 import { ScheduleAppointmentForm } from "./ScheduleAppointmentForm";
 import type { LocationVM } from "@/components/patient/types";
+import type { CurrencyCode } from "@/types/database.types";
 
 export function CreateTab({
   locations,
   currentLocationId,
-  currentDate,
   today,
+  currency,
 }: {
   locations: LocationVM[];
   currentLocationId: string;
-  currentDate: string;
   today: string;
+  currency: CurrencyCode;
 }) {
   const [mode, setMode] = useState<"walkin" | "schedule">("walkin");
 
@@ -40,10 +41,8 @@ export function CreateTab({
       <div className="mt-3">
         {mode === "walkin" ? (
           <>
-            <div className="mb-2 text-[11.5px] text-muted">
-              Issues the next free token for the currently selected location and date.
-            </div>
-            <WalkInForm locationId={currentLocationId} visitDate={currentDate} />
+            <div className="mb-2 text-[11.5px] text-muted">Issues the next free token for the currently selected location, today.</div>
+            <WalkInForm locationId={currentLocationId} visitDate={today} currency={currency} />
           </>
         ) : (
           <>

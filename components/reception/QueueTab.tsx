@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import Link from "next/link";
 import { receivePayment, toggleCheckedIn } from "@/actions/reception";
 import { tokenCount, tokenTime } from "@/lib/calc/tokens";
 import { formatMoney } from "@/lib/calc/format";
@@ -120,14 +121,30 @@ function QueueRow({
                 {booking.paid ? `${meta} · received, checked in` : `${meta} rate -- receiving payment checks the patient in`}
               </div>
             </div>
-            <button
-              disabled={pending}
-              onClick={() => startTransition(() => void receivePayment(booking.id))}
-              className="cursor-pointer px-3 py-2 text-[12.5px] font-extrabold text-white"
-              style={{ background: booking.paid ? "var(--accent-700)" : "var(--accent)" }}
-            >
-              {booking.paid ? "RECEIVED ✓" : "RECEIVED"}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                disabled={pending}
+                onClick={() => startTransition(() => void receivePayment(booking.id))}
+                className="cursor-pointer px-3 py-2 text-[12.5px] font-extrabold"
+                style={
+                  booking.paid
+                    ? { background: "var(--accent)", color: "#fff", border: "1.5px solid var(--accent)" }
+                    : { background: "#fff", color: "var(--accent)", border: "1.5px solid var(--accent)" }
+                }
+              >
+                {booking.paid ? "RECEIVED ✓" : "RECEIVED"}
+              </button>
+              {booking.paid ? (
+                <Link
+                  href={`/reception/token/${booking.id}`}
+                  target="_blank"
+                  className="flex h-[38px] w-[38px] flex-none cursor-pointer items-center justify-center border-2 border-ink text-[13px] font-extrabold"
+                  aria-label="Print token slip"
+                >
+                  T
+                </Link>
+              ) : null}
+            </div>
           </div>
         </div>
       ) : null}

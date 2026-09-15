@@ -11,11 +11,12 @@ import { RequestsTab } from "@/components/reception/RequestsTab";
 import { SessionPatientsTab } from "@/components/reception/SessionPatientsTab";
 import { FollowUpsTab } from "@/components/reception/FollowUpsTab";
 import { CreateTab } from "@/components/reception/CreateTab";
-import { LocationDatePicker } from "@/components/ui/LocationDatePicker";
+import { LocationSessionPicker } from "@/components/reception/LocationSessionPicker";
 
 export default async function ReceptionConsolePage(props: PageProps<"/reception">) {
   const searchParams = await props.searchParams;
   const tab = typeof searchParams.tab === "string" ? searchParams.tab : "queue";
+  const today = todayISO();
 
   const [staff, locations, profile, pendingRequests] = await Promise.all([
     requireStaff(),
@@ -25,8 +26,12 @@ export default async function ReceptionConsolePage(props: PageProps<"/reception"
   ]);
 
   const locationId = typeof searchParams.locationId === "string" ? searchParams.locationId : locations[0]?.id;
-  const date = typeof searchParams.date === "string" ? searchParams.date : todayISO();
   const loc = locations.find((l) => l.id === locationId) ?? locations[0] ?? null;
+  // The Patients tab is the only one with its own date control -- Queue is
+  // always today, and re-entering Patients from the tab bar (rather than
+  // its own date field) should land back on today too, so this only ever
+  // reads from the URL, never carried over from another tab's link.
+  const patientsDate = typeof searchParams.date === "string" ? searchParams.date : today;
 
   let content: React.ReactNode;
   if (tab === "requests") {
@@ -34,28 +39,25 @@ export default async function ReceptionConsolePage(props: PageProps<"/reception"
     content = <RequestsTab requests={pendingRequests} locationNames={locationNames} currency={profile.currency} />;
   } else if (tab === "create") {
     content = loc ? (
-      <CreateTab locations={locations} currentLocationId={loc.id} currentDate={date} today={todayISO()} />
+      <CreateTab locations={locations} currentLocationId={loc.id} today={today} currency={profile.currency} />
     ) : (
       <div className="text-sm text-muted">No locations configured yet.</div>
     );
   } else if (tab === "followups") {
     content = (
-      <FollowUpsTab
-        followUps={await getUpcomingFollowUps()}
-        backHref={`/reception?tab=patients${loc ? `&locationId=${loc.id}&date=${date}` : ""}`}
-      />
+      <FollowUpsTab followUps={await getUpcomingFollowUps()} backHref={`/reception?tab=patients${loc ? `&locationId=${loc.id}` : ""}`} />
     );
   } else if (tab === "patients" && loc) {
-    const sessionBookings = await getQueue(loc.id, date);
+    const sessionBookings = await getQueue(loc.id, patientsDate);
     const doneIds = sessionBookings.filter((b) => b.queueStatus === "done").map((b) => b.id);
     const prescribedBookingIds = await getPrescribedBookingIds(doneIds);
     content = (
       <>
-        <LocationDatePicker locations={locations} locationId={loc.id} date={date} tab="patients" />
+        <LocationSessionPicker locations={locations} currentLocationId={loc.id} tab="patients" sessionLabelStyle={profile.sessionLabels} date={patientsDate} />
         <SessionPatientsTab
           bookings={sessionBookings}
           loc={loc}
-          followUpHref={`/reception?tab=followups&locationId=${loc.id}&date=${date}`}
+          followUpHref={`/reception?tab=followups&locationId=${loc.id}`}
           prescribedBookingIds={prescribedBookingIds}
         />
       </>
@@ -63,11 +65,11 @@ export default async function ReceptionConsolePage(props: PageProps<"/reception"
   } else if (tab === "patients") {
     content = <div className="text-sm text-muted">No locations configured yet.</div>;
   } else if (loc) {
-    const [bookings, nowServing] = await Promise.all([getQueue(loc.id, date), getNowServing(loc.id, date)]);
+    const [bookings, nowServing] = await Promise.all([getQueue(loc.id, today), getNowServing(loc.id, today)]);
     content = (
       <>
-        <LocationDatePicker locations={locations} locationId={loc.id} date={date} tab="queue" />
-        <QueueTab bookings={bookings} loc={loc} locationId={loc.id} visitDate={date} nowServing={nowServing} currency={profile.currency} />
+        <LocationSessionPicker locations={locations} currentLocationId={loc.id} tab="queue" sessionLabelStyle={profile.sessionLabels} />
+        <QueueTab bookings={bookings} loc={loc} locationId={loc.id} visitDate={today} nowServing={nowServing} currency={profile.currency} />
       </>
     );
   } else {
@@ -79,7 +81,7 @@ export default async function ReceptionConsolePage(props: PageProps<"/reception"
       staffName={staff.fullName}
       activeTab={tab}
       requestCount={pendingRequests.length}
-      buildHref={(t) => `/reception?tab=${t}${loc ? `&locationId=${loc.id}&date=${date}` : ""}`}
+      buildHref={(t) => `/reception?tab=${t}${loc ? `&locationId=${loc.id}` : ""}`}
     >
       {content}
     </ReceptionShell>

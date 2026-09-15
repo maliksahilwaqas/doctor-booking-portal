@@ -18,6 +18,12 @@ export interface ActionState {
   error?: string;
 }
 
+export interface AddWalkInState extends ActionState {
+  bookingId?: string;
+  tokenNumber?: number;
+  fee?: number;
+}
+
 /** Front-desk arrival check-in -- distinct from being called into the room (see callNextToken below). */
 export async function toggleCheckedIn(bookingId: string): Promise<ActionState> {
   await requireRole("reception");
@@ -100,7 +106,7 @@ export async function declineRequest(bookingId: string): Promise<ActionState> {
   return {};
 }
 
-export async function addWalkIn(input: WalkInInput): Promise<ActionState> {
+export async function addWalkIn(input: WalkInInput): Promise<AddWalkInState> {
   await requireRole("reception");
   const parsed = walkInSchema.safeParse(input);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid walk-in" };
@@ -133,18 +139,22 @@ export async function addWalkIn(input: WalkInInput): Promise<ActionState> {
   }
   if (nextToken === null) return { error: "No free tokens left for this session." };
 
-  const { error } = await supabase.from("bookings").insert({
-    location_id: locationId,
-    visit_date: visitDate,
-    token_number: nextToken,
-    status: "confirmed",
-    patient_name: patientName,
-    patient_phone: patientPhone,
-    fee: Number(location.fee),
-  });
-  if (error) return { error: "Could not add walk-in token" };
+  const { data: inserted, error } = await supabase
+    .from("bookings")
+    .insert({
+      location_id: locationId,
+      visit_date: visitDate,
+      token_number: nextToken,
+      status: "confirmed",
+      patient_name: patientName,
+      patient_phone: patientPhone,
+      fee: Number(location.fee),
+    })
+    .select("id")
+    .single();
+  if (error || !inserted) return { error: "Could not add walk-in token" };
   revalidatePath("/reception");
-  return {};
+  return { bookingId: inserted.id, tokenNumber: nextToken, fee: Number(location.fee) };
 }
 
 /**
