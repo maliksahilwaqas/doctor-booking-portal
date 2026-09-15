@@ -18,6 +18,7 @@ export function CreateTab({
   currency: CurrencyCode;
 }) {
   const [mode, setMode] = useState<"walkin" | "schedule">("walkin");
+  const currentLocation = locations.find((l) => l.id === currentLocationId);
 
   return (
     <div>
@@ -42,7 +43,7 @@ export function CreateTab({
         {mode === "walkin" ? (
           <>
             <div className="mb-2 text-[11.5px] text-muted">Issues the next free token for the currently selected location, today.</div>
-            <WalkInForm locationId={currentLocationId} visitDate={today} currency={currency} />
+            <WalkInForm locationId={currentLocationId} visitDate={today} currency={currency} fee={currentLocation?.fee ?? 0} />
           </>
         ) : (
           <>

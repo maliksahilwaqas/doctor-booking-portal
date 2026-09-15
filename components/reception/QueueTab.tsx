@@ -98,14 +98,30 @@ function QueueRow({
           <div className="text-[11.5px] text-muted">{booking.checkedIn ? `${meta} · checked in` : meta}</div>
         </div>
         {freeEntry ? (
-          <button
-            disabled={pending}
-            onClick={() => startTransition(() => void toggleCheckedIn(booking.id))}
-            className="cursor-pointer px-2.5 py-1.5 text-xs font-extrabold text-white"
-            style={{ background: booking.checkedIn ? "var(--accent-700)" : "var(--accent)" }}
-          >
-            {booking.checkedIn ? "CHECKED IN ✓" : "CHECK IN"}
-          </button>
+          <div className="flex flex-none items-center gap-2">
+            <button
+              disabled={pending}
+              onClick={() => startTransition(() => void toggleCheckedIn(booking.id))}
+              className="cursor-pointer px-2.5 py-1.5 text-xs font-extrabold"
+              style={
+                booking.checkedIn
+                  ? { background: "var(--accent)", color: "#fff", border: "1.5px solid var(--accent)" }
+                  : { background: "#fff", color: "var(--accent)", border: "1.5px solid var(--accent)" }
+              }
+            >
+              {booking.checkedIn ? "CHECKED IN ✓" : "CHECK IN"}
+            </button>
+            {booking.checkedIn ? (
+              <Link
+                href={`/reception/token/${booking.id}`}
+                target="_blank"
+                className="flex h-[30px] w-[30px] flex-none cursor-pointer items-center justify-center border-2 border-ink text-[12px] font-extrabold"
+                aria-label="Print token slip"
+              >
+                T
+              </Link>
+            ) : null}
+          </div>
         ) : null}
       </div>
 

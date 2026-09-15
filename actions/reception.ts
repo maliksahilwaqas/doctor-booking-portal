@@ -21,7 +21,6 @@ export interface ActionState {
 export interface AddWalkInState extends ActionState {
   bookingId?: string;
   tokenNumber?: number;
-  fee?: number;
 }
 
 /** Front-desk arrival check-in -- distinct from being called into the room (see callNextToken below). */
@@ -106,6 +105,13 @@ export async function declineRequest(bookingId: string): Promise<ActionState> {
   return {};
 }
 
+/**
+ * The Create tab gates its own "+ Walk-in token" button behind having
+ * already clicked "Received"/"Check in" first (see WalkInForm) -- by the
+ * time this runs, the fee is already collected (or there wasn't one), so
+ * the row is inserted already checked in rather than a separate step
+ * after the fact.
+ */
 export async function addWalkIn(input: WalkInInput): Promise<AddWalkInState> {
   await requireRole("reception");
   const parsed = walkInSchema.safeParse(input);
@@ -149,12 +155,15 @@ export async function addWalkIn(input: WalkInInput): Promise<AddWalkInState> {
       patient_name: patientName,
       patient_phone: patientPhone,
       fee: Number(location.fee),
+      paid: Number(location.fee) > 0,
+      checked_in: true,
+      queue_status: "checked_in",
     })
     .select("id")
     .single();
   if (error || !inserted) return { error: "Could not add walk-in token" };
   revalidatePath("/reception");
-  return { bookingId: inserted.id, tokenNumber: nextToken, fee: Number(location.fee) };
+  return { bookingId: inserted.id, tokenNumber: nextToken };
 }
 
 /**
