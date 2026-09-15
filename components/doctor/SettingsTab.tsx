@@ -153,6 +153,8 @@ function LocationEditorModal({
   allowedSlotMinutes: number[];
   onClose: () => void;
 }) {
+  const [name, setName] = useState(location.name);
+  const [area, setArea] = useState(location.area);
   const [session, setSession] = useState<"morning" | "evening" | "both">(location.session);
   const [fromMin, setFromMin] = useState(location.fromMin);
   const [toMin, setToMin] = useState(location.toMin);
@@ -185,9 +187,16 @@ function LocationEditorModal({
     // looked like it did nothing no matter what the doctor picked. Save
     // the number the count actually produces instead.
     const slotMin = divide === "slot" ? slot : Math.max(1, preview.effectiveSlotMin);
+    if (!name.trim() || !area.trim()) {
+      setError("Name and area can't be empty.");
+      setSaving(false);
+      return;
+    }
     try {
       const result = await saveLocationSchedule({
         locationId: location.id,
+        name: name.trim(),
+        area: area.trim(),
         session: session === "both" ? "morning" : session,
         fromMin,
         toMin,
@@ -214,11 +223,33 @@ function LocationEditorModal({
       <div className="max-h-[90dvh] w-full max-w-md overflow-y-auto border-2 border-ink bg-bg p-4" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <div className="text-[11px] font-extrabold uppercase tracking-[0.1em]">
-            Editing · {location.name}, {location.area}
+            Editing · {name || location.name}, {area || location.area}
           </div>
           <button onClick={onClose} className="cursor-pointer text-xl font-extrabold leading-none" aria-label="Close">
             ×
           </button>
+        </div>
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <label className="block">
+            <div className="mb-1 text-[10px] font-extrabold uppercase tracking-[0.1em] text-muted">Name</div>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="h-[42px] w-full border border-divider bg-surface px-2 text-sm font-medium outline-none focus:border-ink"
+            />
+          </label>
+          <label className="block">
+            <div className="mb-1 text-[10px] font-extrabold uppercase tracking-[0.1em] text-muted">Area</div>
+            <input
+              value={area}
+              onChange={(e) => setArea(e.target.value)}
+              className="h-[42px] w-full border border-divider bg-surface px-2 text-sm font-medium outline-none focus:border-ink"
+            />
+          </label>
+        </div>
+        <div className="mt-1.5 text-[11px] text-muted">
+          Give a second sitting at the same place the same name and area (different hours) -- reception&apos;s pickers group by that automatically.
         </div>
 
         <div className="mt-3">

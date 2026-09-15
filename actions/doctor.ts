@@ -26,7 +26,7 @@ export async function saveLocationSchedule(input: SaveLocationScheduleInput): Pr
 
   const parsed = saveLocationScheduleSchema.safeParse(input);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid schedule" };
-  const { locationId, session, fromMin, toMin, days, slotMin, divideByCount } = parsed.data;
+  const { locationId, name, area, session, fromMin, toMin, days, slotMin, divideByCount } = parsed.data;
   // "By slot length" only ever offers the admin's own menu, so a real
   // client can't send anything else there -- but "by patient count"
   // deliberately produces whatever slot length that count implies, which
@@ -36,7 +36,7 @@ export async function saveLocationSchedule(input: SaveLocationScheduleInput): Pr
   const supabase = await createClient();
   const { error } = await supabase
     .from("locations")
-    .update({ session, from_min: fromMin, to_min: toMin, days, slot_min: slotMin })
+    .update({ name, area, session, from_min: fromMin, to_min: toMin, days, slot_min: slotMin })
     .eq("id", locationId);
   if (error) return { error: "Could not save the schedule" };
 

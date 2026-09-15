@@ -2,6 +2,8 @@ import { z } from "zod";
 
 export const saveLocationScheduleSchema = z.object({
   locationId: z.string().uuid(),
+  name: z.string().trim().min(1).max(120),
+  area: z.string().trim().min(1).max(120),
   session: z.enum(["morning", "evening"]),
   fromMin: z.number().int().min(0).max(1439),
   toMin: z.number().int().min(1).max(1440),
