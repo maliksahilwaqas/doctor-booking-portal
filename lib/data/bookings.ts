@@ -112,26 +112,30 @@ export async function getBookingsForDate(locationIds: string[], visitDate: strin
 export interface LocationEarnings {
   locationId: string;
   total: number;
-  unpaid: number;
   patientCount: number;
 }
 
-/** Confirmed-booking totals by location for a date range -- doctor's Earnings tab. */
+/**
+ * Doctor's Earnings tab: patients who actually turned up (checked in) and
+ * money actually received (paid) by location for a date range. A booking
+ * that is still only scheduled, or hasn't paid yet, counts toward neither --
+ * the tab shows "collection", not "expected".
+ */
 export async function getEarningsByLocation(start: string, end: string): Promise<LocationEarnings[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("bookings")
     .select("location_id, fee, paid")
     .eq("status", "confirmed")
+    .eq("checked_in", true)
     .gte("visit_date", start)
     .lte("visit_date", end);
   if (error) throw new Error(`Could not load earnings: ${error.message}`);
 
   const byLocation = new Map<string, LocationEarnings>();
   for (const row of data) {
-    const entry = byLocation.get(row.location_id) ?? { locationId: row.location_id, total: 0, unpaid: 0, patientCount: 0 };
-    entry.total += Number(row.fee);
-    if (!row.paid) entry.unpaid += Number(row.fee);
+    const entry = byLocation.get(row.location_id) ?? { locationId: row.location_id, total: 0, patientCount: 0 };
+    if (row.paid) entry.total += Number(row.fee);
     entry.patientCount += 1;
     byLocation.set(row.location_id, entry);
   }

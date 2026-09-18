@@ -10,7 +10,7 @@ export function DispenseButton({ prescriptionId, dispensed }: { prescriptionId: 
     <button
       disabled={pending}
       onClick={() => startTransition(() => void toggleDispensed(prescriptionId))}
-      className="cursor-pointer px-4 py-2 text-[12.5px] font-extrabold"
+      className="cursor-pointer whitespace-nowrap px-3 py-2 text-[12.5px] font-extrabold sm:px-4"
       style={{
         border: `2px solid ${dispensed ? "var(--accent-700)" : "var(--accent)"}`,
         background: dispensed ? "var(--accent-700)" : "var(--accent)",

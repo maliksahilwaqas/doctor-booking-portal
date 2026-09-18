@@ -2,8 +2,11 @@ import { formatMoney } from "@/lib/calc/format";
 import type { CurrencyCode } from "@/types/database.types";
 
 export interface LocationEarningsVM {
+  id: string;
   name: string;
   area: string;
+  /** Only set when two sittings at the same place would otherwise read identically. */
+  session: string | null;
   total: number;
   patientCount: number;
 }
@@ -32,12 +35,13 @@ export function EarningsTab({
 
       <div className="mt-4 text-[11px] font-extrabold uppercase tracking-[0.1em]">By location</div>
       <div className="mt-2 flex flex-col gap-2.5">
-        {byLocation.length === 0 ? <div className="text-sm text-muted">No confirmed bookings this month yet.</div> : null}
+        {byLocation.length === 0 ? <div className="text-sm text-muted">No checked-in patients this month yet.</div> : null}
         {byLocation.map((l) => (
-          <div key={l.name}>
+          <div key={l.id}>
             <div className="flex justify-between text-[13px]">
               <span className="font-extrabold">
                 {l.name} — {l.area}
+                {l.session ? ` · ${l.session}` : ""}
               </span>
               <span className="font-extrabold">{formatMoney(l.total, currency)}</span>
             </div>

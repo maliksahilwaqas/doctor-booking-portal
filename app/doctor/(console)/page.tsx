@@ -41,9 +41,25 @@ export default async function DoctorConsolePage(props: PageProps<"/doctor">) {
   if (tab === "earnings") {
     const { start, end, label } = monthRange(today);
     const earnings = await getEarningsByLocation(start, end);
+    // A doctor who sits twice a day at one place has two rows sharing a name
+    // and area -- only then does the row need its session spelled out.
+    const sittingsAt = new Map<string, number>();
+    for (const e of earnings) {
+      const loc = allLocations.find((l) => l.id === e.locationId);
+      const key = `${loc?.name}|${loc?.area}`;
+      sittingsAt.set(key, (sittingsAt.get(key) ?? 0) + 1);
+    }
     const byLocation: LocationEarningsVM[] = earnings.map((e) => {
       const loc = allLocations.find((l) => l.id === e.locationId);
-      return { name: loc?.name ?? "Location", area: loc?.area ?? "", total: e.total, patientCount: e.patientCount };
+      const shared = (sittingsAt.get(`${loc?.name}|${loc?.area}`) ?? 0) > 1;
+      return {
+        id: e.locationId,
+        name: loc?.name ?? "Location",
+        area: loc?.area ?? "",
+        session: shared && loc ? sessionLabel(profile.sessionLabels, loc.session) : null,
+        total: e.total,
+        patientCount: e.patientCount,
+      };
     });
     content = <EarningsTab monthLabel={label} byLocation={byLocation} currency={profile.currency} />;
   } else if (tab === "settings" && profile.feat.doctorSettings) {

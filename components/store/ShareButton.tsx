@@ -38,7 +38,7 @@ export function ShareButton({ data, fileName }: { data: PrescriptionPdfData; fil
       <button
         disabled={busy}
         onClick={share}
-        className="cursor-pointer border-2 border-ink bg-ink px-4 py-2 text-[12.5px] font-extrabold text-bg disabled:opacity-50"
+        className="cursor-pointer whitespace-nowrap border-2 border-ink bg-ink px-3 py-2 text-[12.5px] font-extrabold text-bg disabled:opacity-50 sm:px-4"
       >
         {busy ? "PREPARING…" : "SHARE"}
       </button>

@@ -26,6 +26,9 @@ function groupKey(l: LocationOption): string {
  * entries. This groups by name+area and only shows a second "time" select
  * when a place actually has more than one sitting.
  *
+ * The selects have a minimum width so that on a phone they drop onto their
+ * own lines rather than shrinking until their text is cut off.
+ *
  * `date` is only passed (and only then does a date input render) for the
  * Patients tab -- the Queue tab has no date control at all, it's always
  * today. Every change navigates immediately; there's no separate Go button.
@@ -78,7 +81,7 @@ export function LocationSessionPicker({
           const first = g?.variants[0];
           if (first) navigate(first.id, date);
         }}
-        className="h-9 min-w-0 flex-1 border border-divider bg-surface px-2 text-[13px] font-bold"
+        className="h-9 min-w-[190px] flex-1 border border-divider bg-surface px-2 text-[13px] font-bold"
       >
         {groups.map((g) => (
           <option key={g.key} value={g.key}>
@@ -91,7 +94,7 @@ export function LocationSessionPicker({
         <select
           value={currentLoc.id}
           onChange={(e) => navigate(e.target.value, date)}
-          className="h-9 min-w-0 flex-1 border border-divider bg-surface px-2 text-[13px] font-bold"
+          className="h-9 min-w-[190px] flex-1 border border-divider bg-surface px-2 text-[13px] font-bold"
         >
           {currentGroup.variants.map((v) => (
             <option key={v.id} value={v.id}>

@@ -29,14 +29,14 @@ export default async function StorePrescriptionPage(props: PageProps<"/store/[bo
 
   return (
     <div className="mx-auto w-full max-w-xl">
-      <div className="print:hidden flex items-center justify-between gap-3 px-5 py-4">
+      <div className="print:hidden flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-5 py-4">
         <Link
           href={staff.role === "store" ? "/store" : "/reception?tab=patients"}
-          className="text-[11px] font-extrabold uppercase tracking-[0.04em] text-muted underline"
+          className="text-[11px] font-extrabold uppercase tracking-[0.04em] whitespace-nowrap text-muted underline"
         >
           ← Back
         </Link>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-start gap-2">
           {staff.role === "store" ? (
             <DispenseButton prescriptionId={prescription.prescriptionId} dispensed={prescription.dispensed} />
           ) : null}
