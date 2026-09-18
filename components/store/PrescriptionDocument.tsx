@@ -1,4 +1,5 @@
 import { doseLabel, followUpLabel } from "@/lib/calc/prescription";
+import { CLINIC_TIME_ZONE } from "@/lib/calc/timezone";
 import type { PrescriptionItem } from "@/types/database.types";
 
 export interface DoctorHeader {
@@ -21,7 +22,7 @@ function formatDate(iso: string): string {
 }
 
 function formatIssuedAt(iso: string): string {
-  return new Date(iso).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
+  return new Date(iso).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: CLINIC_TIME_ZONE });
 }
 
 /**

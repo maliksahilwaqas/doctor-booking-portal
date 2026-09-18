@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { followUpDateISO } from "@/lib/calc/schedule";
 import type { PrescriptionItem } from "@/types/database.types";
 
 export interface Prescription {
@@ -78,13 +79,11 @@ export async function getUpcomingFollowUps(): Promise<FollowUp[]> {
   const infoById = new Map(withFollowUp);
   const result: FollowUp[] = bookings.map((b) => {
     const info = infoById.get(b.id)!;
-    const d = new Date(info.createdAt);
-    d.setUTCDate(d.getUTCDate() + info.followUpDays);
     return {
       bookingId: b.id,
       patientName: b.patient_name,
       patientPhone: b.patient_phone,
-      followUpDate: d.toISOString().slice(0, 10),
+      followUpDate: followUpDateISO(info.createdAt, info.followUpDays),
     };
   });
   return result.sort((a, b) => a.followUpDate.localeCompare(b.followUpDate));

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { todayISO } from "@/lib/calc/schedule";
 
 const POLL_MS = 10000;
 const BLINK_MS = 45000;
@@ -14,10 +15,10 @@ const BLINK_MS = 45000;
  *   only once this one finishes), not setInterval. setInterval keeps
  *   firing on its own clock even if a fetch is slow, which can pile up
  *   overlapping requests; this can't ever have two in flight at once.
- * - "Today" is recomputed on every poll (UTC date, matching todayISO()
- *   server-side) instead of trusting the date the page happened to load
- *   with, so a screen left open across midnight follows the new day's
- *   queue on its own.
+ * - "Today" is recomputed on every poll (the clinic's calendar day, the
+ *   same todayISO() the server uses) instead of trusting the date the page
+ *   happened to load with, so a screen left open across midnight follows
+ *   the new day's queue on its own.
  * - visibilitychange/focus/online listeners force an immediate poll (and
  *   reset the schedule so it doesn't also fire a second one moments
  *   later) whenever the tab wakes up -- covers a browser backgrounding
@@ -47,7 +48,7 @@ export function TokenDisplay({
 
     async function poll() {
       try {
-        const today = new Date().toISOString().slice(0, 10);
+        const today = todayISO();
         const res = await fetch(`/api/now-serving?locationId=${locationId}&date=${today}`, { cache: "no-store" });
         if (!cancelled && res.ok) {
           const data = await res.json();

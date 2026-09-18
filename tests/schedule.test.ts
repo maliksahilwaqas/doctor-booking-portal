@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildDayList, dayInfo, dayLabel, findOpenDayIndex, isDayOpen } from "@/lib/calc/schedule";
+import { buildDayList, dayInfo, dayLabel, findOpenDayIndex, followUpDateISO, isDayOpen, todayISO } from "@/lib/calc/schedule";
 
 describe("dayInfo", () => {
   it("computes weekday as 1=Mon..7=Sun", () => {
@@ -37,5 +37,34 @@ describe("findOpenDayIndex", () => {
     const dayList = buildDayList("2026-09-05", 5);
     const idx = findOpenDayIndex(dayList, [2], [], 4, 1);
     expect(dayList[idx].weekday).toBe(2);
+  });
+});
+
+// The clinic is in Pakistan (UTC+5, no daylight saving), so its day starts at
+// 19:00 UTC the evening before. Using the UTC date made every screen think it
+// was still yesterday from midnight until 05:00 local time.
+describe("todayISO", () => {
+  it("is still the same day one minute before local midnight", () => {
+    expect(todayISO(new Date("2026-09-18T18:59:00Z"))).toBe("2026-09-18");
+  });
+
+  it("rolls over exactly at local midnight, not at UTC midnight", () => {
+    expect(todayISO(new Date("2026-09-18T19:00:00Z"))).toBe("2026-09-19");
+    expect(todayISO(new Date("2026-09-18T19:10:00Z"))).toBe("2026-09-19");
+  });
+
+  it("stays on the local date through the early hours", () => {
+    expect(todayISO(new Date("2026-09-19T00:30:00Z"))).toBe("2026-09-19");
+  });
+});
+
+describe("followUpDateISO", () => {
+  it("counts from the clinic's date, not the UTC date, of the prescription", () => {
+    // 01:00 on 19 Sep in Pakistan is still 18 Sep in UTC.
+    expect(followUpDateISO("2026-09-18T20:00:00Z", 15)).toBe("2026-10-04");
+  });
+
+  it("crosses month ends", () => {
+    expect(followUpDateISO("2026-09-20T06:00:00Z", 15)).toBe("2026-10-05");
   });
 });

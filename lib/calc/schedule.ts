@@ -1,6 +1,9 @@
 // Day-list and open/closed-day logic for the token picker's day stepper.
-// Dates are ISO "YYYY-MM-DD" strings throughout, handled in UTC so
-// day-of-week math can't drift with the server's local timezone.
+// Dates are ISO "YYYY-MM-DD" strings throughout. Calendar arithmetic on them
+// is done in UTC so day-of-week math can't drift with the server's timezone;
+// what "today" is comes from the clinic's own timezone (lib/calc/timezone.ts).
+
+import { clinicDateISO } from "./timezone";
 
 export const DOW_SHORT = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -13,8 +16,13 @@ export interface DayInfo {
   month: string;
 }
 
-export function todayISO(): string {
-  return new Date().toISOString().slice(0, 10);
+export function todayISO(now: Date = new Date()): string {
+  return clinicDateISO(now);
+}
+
+/** The clinic-calendar date a follow-up falls on, `days` after the day the prescription was written. */
+export function followUpDateISO(createdAt: string, days: number): string {
+  return addDaysISO(clinicDateISO(new Date(createdAt)), days);
 }
 
 export function addDaysISO(iso: string, days: number): string {
